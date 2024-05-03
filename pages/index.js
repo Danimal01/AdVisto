@@ -265,29 +265,36 @@ useEffect(() => {
 
 
 
-    // Function to handle reward claim
-    const claimReward = async () => {
-      const contract = selectedChain === 'mainNet' ? ethRewardContract : baseRewardContract;
-    
-      if (!web3 || !contract) {
-        console.error('Web3 or contract instance not initialized.');
-        return;
-      }
-    
-      try {
-        const accounts = await web3.eth.getAccounts();
-        if (accounts.length === 0) {
-          console.error('No accounts found.');
-          return;
-        }
-    
-        await contract.methods.claimReward().send({ from: accounts[0] });
-        console.log(`Reward claimed successfully on ${selectedChain}`);
-        setUserRewards((prevRewards) => prevRewards + parseFloat(0.0002)); // Update rewards
-      } catch (error) {
-        console.error(`Error claiming reward on ${selectedChain}:`, error);
-      }
-    };
+    // Function to handle reward claim// Function to handle reward claim
+const claimReward = async () => {
+  if (!window.ethereum) {
+    console.error('MetaMask is not installed');
+    return;
+  }
+
+  const web3Instance = new Web3(window.ethereum);
+  const contractInstance = new web3Instance.eth.Contract(
+    selectedChain === 'mainNet' ? ethContractABI : baseContractABI, 
+    selectedChain === 'mainNet' ? ethContractAddress : baseContractAddress
+  );
+
+  try {
+    await window.ethereum.request({ method: 'eth_requestAccounts' }); // This will prompt user to connect their wallet
+    const accounts = await web3Instance.eth.getAccounts();
+
+    if (accounts.length === 0) {
+      console.error('No accounts found.');
+      return;
+    }
+
+    await contractInstance.methods.claimReward().send({ from: accounts[0] });
+    console.log(`Reward claimed successfully on ${selectedChain}`);
+    setUserRewards((prevRewards) => prevRewards + 0.0002); // Assuming rewards are in ETH
+  } catch (error) {
+    console.error(`Error claiming reward on ${selectedChain}:`, error);
+  }
+};
+
     
 
 
