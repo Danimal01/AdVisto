@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import styles from '../styles/Home.module.css'; // Assuming you're using CSS modules
 import Web3 from 'web3'; // Import Web3 library
+import { IDKitWidget, VerificationLevel } from '@worldcoin/idkit';
 
 const IndexPage = () => {
   // State to store ads, user interactions, rewards, and reward history
@@ -433,6 +434,16 @@ const fetchRewardHistory = async () => {
     return baseUrl + hash;
   };
 
+  const onSuccess = (result) => {
+    // Log the success or perform further actions
+    console.log(`Verification success. Nullifier hash: ${result.nullifier_hash}`);
+    claimReward(); // Now call the existing claimReward function only after successful verification
+  };
+  
+  const handleVerify = (proof) => {
+    console.log("Proof received:", proof);
+  };
+
   return (
     <div className={styles.container}>
       <h1>Welcome to AdVisto</h1>
@@ -465,15 +476,23 @@ const fetchRewardHistory = async () => {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className={styles.modal}>
-          <div className={styles.modalContent}>
-            <span className={styles.close} onClick={closeModal}>&times;</span>
-            <h2>Congratulations!</h2>
-            <p>You've watched the entire ad. Claim your reward now.</p>
-            <button onClick={claimReward}>Claim Reward</button>
-          </div>
-        </div>
-      )}
+  <div className={styles.modal}>
+    <div className={styles.modalContent}>
+      <span className={styles.close} onClick={closeModal}>&times;</span>
+      <h2>Congratulations!</h2>
+      <p>You've watched the entire ad. Verify to claim your reward.</p>
+      <IDKitWidget
+        app_id="app_e294029cf5121141d7ea27c6b6f749e1"  // Replace with your actual app_id
+        action="claim_reward"  // This should be the action configured in the Developer Portal
+        onSuccess={onSuccess}
+        handleVerify={handleVerify}
+        verification_level={VerificationLevel.Device}
+      >
+        {({ open }) => <button onClick={open}>Verify with World ID and Claim Reward!</button>}
+      </IDKitWidget>
+    </div>
+  </div>
+)}
 
       {/* Video Player */}
       {isVideoVisible && activeVideoUrl && (
