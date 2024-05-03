@@ -147,6 +147,44 @@ const IndexPage = () => {
   const ethContractAddress = '0x1E21e0968C721eBDe1cd9387DD8eE7A8c672FE5C'; // Ethereum smart contract address
   const baseContractAddress = '0x5CF9e9CDe0aC4e16b285a7CA6E37041440A55A95'; // Base smart contract address
 
+  const networkParams = {
+    mainNet: {
+      chainId: '0xaa36a7', // Example, update with actual Ethereum Sepolia chainId if different
+      chainName: 'Main Net Sepolia',
+      rpcUrls: ['https://eth-sepolia.g.alchemy.com/v2/2AjX_GisadCWbv8Vd9dL0lILAOblOWSx'],
+      blockExplorerUrls: ['https://sepolia.etherscan.io'],
+      nativeCurrency: {
+        name: 'ETH',
+        symbol: 'ETH',
+        decimals: 18
+      }
+    },
+    base: {
+      chainId: '0x14a34',
+      chainName: 'Base Sepolia TestNet',
+      rpcUrls: ['https://base-sepolia.g.alchemy.com/v2/X0PVbPHOZmZHWhHSssqSRHNX2BQYDUq-'],
+      blockExplorerUrls: ['https://sepolia.basescan.org'],
+      nativeCurrency: {
+        name: 'ETH',
+        symbol: 'ETH',
+        decimals: 18
+      }
+    }
+  };
+
+  useEffect(() => {
+    const setInitialNetwork = async () => {
+      try {
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [networkParams[selectedChain]],
+        });
+      } catch (error) {
+        console.error('Error setting initial network:', error);
+      }
+    };
+    setInitialNetwork();
+  }, []);
 
   useEffect(() => {
     window.ethereum.on('chainChanged', (chainId) => {
@@ -157,30 +195,18 @@ const IndexPage = () => {
   
 
   const handleChainChange = async (e) => {
-    const chainId = e.target.value;
-    setSelectedChain(chainId);
-    
+    const newChain = e.target.value;
+    setSelectedChain(newChain);
+
     try {
       await window.ethereum.request({
         method: 'wallet_addEthereumChain',
-        params: [
-          {
-            chainId: '0x14a34', // Hexadecimal chain ID for Base Sepolia TestNet
-            chainName: 'Base Sepolia TestNet',
-            rpcUrls: ['https://base-sepolia.g.alchemy.com/v2/X0PVbPHOZmZHWhHSssqSRHNX2BQYDUq-'],
-            blockExplorerUrls: ['https://sepolia.basescan.org'],
-            nativeCurrency: {
-              name: 'ETH', // Name of the currency
-              symbol: 'ETH', // Symbol of the currency
-              decimals: 18  // Commonly, this is 18 decimals for Ethereum-based networks
-            }
-          },
-        ],
+        params: [networkParams[newChain]],
       });
     } catch (error) {
-      console.error('Error adding custom chain:', error);
-    }    
-};
+      console.error('Error changing network:', error);
+    }
+  };
 
   
   
@@ -206,7 +232,7 @@ const IndexPage = () => {
     };
   
     initWeb3AndContracts();
-  }, []); // Run only once on component mount
+  }, [selectedChain]); // Run only once on component mount
   
   
 
