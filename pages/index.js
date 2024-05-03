@@ -272,20 +272,56 @@ const IndexPage = () => {
   }, []);
   
   
-
   const handleChainChange = async (e) => {
     const newChain = e.target.value;
     setSelectedChain(newChain);
-
+  
     try {
       await window.ethereum.request({
         method: 'wallet_addEthereumChain',
         params: [networkParams[newChain]],
       });
+  
+      const web3Instance = new Web3(networkParams[newChain].rpcUrls[0]);
+      setWeb3(web3Instance);
+  
+      let contractABI;
+      let contractAddress;
+      if (newChain === 'mainNet') {
+        contractABI = ethContractABI;
+        contractAddress = ethContractAddress;
+      } else if (newChain === 'base') {
+        contractABI = baseContractABI;
+        contractAddress = baseContractAddress;
+      } else if (newChain === 'mantle') {
+        contractABI = mantleContractABI;
+        contractAddress = mantleContractAddress;
+      } else {
+        console.error("Unsupported network");
+        return;
+      }
+  
+      const newContractInstance = new web3Instance.eth.Contract(contractABI, contractAddress);
+      setRewardContract(newContractInstance);
     } catch (error) {
-      console.error('Error changing network:', error);
+      console.error('Error changing network or initializing contract:', error);
     }
   };
+  
+
+  useEffect(() => {
+    console.log("Current reward contract address:", rewardContract?._address);
+    console.log("Web3 instance URL:", web3?._provider?.host);
+  }, [rewardContract, web3]);
+
+  useEffect(() => {
+    console.log("Selected Chain:", selectedChain);
+    console.log("Reward Contract Address:", rewardContract?._address);
+  }, [selectedChain, rewardContract]);
+  
+  
+  
+  
 
   
   useEffect(() => {
@@ -462,33 +498,29 @@ const handleAdClick = async (ad) => {
 
 // Function to fetch reward history
 const fetchRewardHistory = async () => {
-  const contractToUse = selectedChain === 'mainNet' ? ethRewardContract : baseRewardContract;
-  
-  if (!web3 || !contractToUse || !walletAddress) {
+  if (!web3 || !rewardContract || !walletAddress) {
     console.error('Web3, contract instance, or wallet address not initialized.');
     return;
   }
 
   try {
-    // Fetch the events related to RewardClaimed event
-    const events = await contractToUse.getPastEvents('RewardClaimed', {
+    // Fetch the events related to the RewardClaimed event
+    const events = await rewardContract.getPastEvents('RewardClaimed', {
       filter: { user: walletAddress },
       fromBlock: 0,
       toBlock: 'latest',
     });
 
     // Extract transaction hashes from events
-    const transactionHashes = events.map((event) => event.transactionHash);
+    const transactionHashes = events.map(event => event.transactionHash);
 
-    // Fetch the rewards claimed by the wallet address
-    const totalRewards = await contractToUse.methods.rewardsClaimed(walletAddress).call();
-
-    setUserRewards(parseFloat(totalRewards));
+    // Update the state with the transaction hashes
     setRewardHistory(transactionHashes);
   } catch (error) {
     console.error('Error fetching reward history:', error);
   }
 };
+
 
 
 
