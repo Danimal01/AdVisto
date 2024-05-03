@@ -1,0 +1,37 @@
+{
+    "users": [
+      {
+        "userId": "user456",
+        "email": "user@example.com",
+        "rewardsBalance": "0.0012",
+        "rewardHistory": [
+          {
+            "date": "2024-05-20",
+            "adId": "1",
+            "reward": "0.0001",
+            "currency": "ETH"
+          }
+        ]
+      },
+      {
+        "userId": "user789",
+        "email": "anotheruser@example.com",
+        "rewardsBalance": "0.0023",
+        "rewardHistory": [
+          {
+            "date": "2024-05-18",
+            "adId": "2",
+            "reward": "0.0002",
+            "currency": "ETH"
+          },
+          {
+            "date": "2024-05-19",
+            "adId": "3",
+            "reward": "0.00015",
+            "currency": "ETH"
+          }
+        ]
+      }
+    ]
+  }
+  
