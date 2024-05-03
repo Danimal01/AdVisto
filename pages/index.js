@@ -156,11 +156,35 @@ const IndexPage = () => {
   }, []);
   
 
-  const handleChainChange = (e) => {
-    setSelectedChain(e.target.value);
-    // Filter ads based on the selected chain
-    fetchAds(e.target.value);
-  };
+  const handleChainChange = async (e) => {
+    const chainId = e.target.value;
+    setSelectedChain(chainId);
+    
+    try {
+      await window.ethereum.request({
+        method: 'wallet_addEthereumChain',
+        params: [
+          {
+            chainId: '0x14a34', // Hexadecimal chain ID for Base Sepolia TestNet
+            chainName: 'Base Sepolia TestNet',
+            rpcUrls: ['https://base-sepolia.g.alchemy.com/v2/X0PVbPHOZmZHWhHSssqSRHNX2BQYDUq-'],
+            blockExplorerUrls: ['https://sepolia.basescan.org'],
+            nativeCurrency: {
+              name: 'ETH', // Name of the currency
+              symbol: 'ETH', // Symbol of the currency
+              decimals: 18  // Commonly, this is 18 decimals for Ethereum-based networks
+            }
+          },
+        ],
+      });
+    } catch (error) {
+      console.error('Error adding custom chain:', error);
+    }    
+};
+
+  
+  
+  
 
   useEffect(() => {
     const initWeb3AndContracts = async () => {
