@@ -90,6 +90,13 @@ const IndexPage = () => {
   const baseContractABI = [
     {
       "inputs": [],
+      "name": "claimReward",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "stateMutability": "payable",
       "type": "constructor"
     },
@@ -113,11 +120,8 @@ const IndexPage = () => {
       "type": "event"
     },
     {
-      "inputs": [],
-      "name": "claimReward",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
+      "stateMutability": "payable",
+      "type": "receive"
     },
     {
       "inputs": [
@@ -137,15 +141,11 @@ const IndexPage = () => {
       ],
       "stateMutability": "view",
       "type": "function"
-    },
-    {
-      "stateMutability": "payable",
-      "type": "receive"
     }
   ];
 
   const ethContractAddress = '0x1E21e0968C721eBDe1cd9387DD8eE7A8c672FE5C'; // Ethereum smart contract address
-  const baseContractAddress = '0x5CF9e9CDe0aC4e16b285a7CA6E37041440A55A95'; // Base smart contract address
+  const baseContractAddress = '0x035BDa1174e5708cF54dCEA75623C159F41ECC26'; // Base smart contract address
 
   const networkParams = {
     mainNet: {
@@ -187,11 +187,19 @@ const IndexPage = () => {
   }, []);
 
   useEffect(() => {
-    window.ethereum.on('chainChanged', (chainId) => {
+    const handleChainChange = (chainId) => {
       console.log(`Chain changed to ${chainId}`);
-      window.location.reload();
-    });
+      // Optionally, update any relevant state here if needed
+    };
+  
+    window.ethereum.on('chainChanged', handleChainChange);
+  
+    return () => {
+      // This cleanup function removes the listener when the component unmounts
+      window.ethereum.removeListener('chainChanged', handleChainChange);
+    };
   }, []);
+  
   
 
   const handleChainChange = async (e) => {
@@ -209,9 +217,6 @@ const IndexPage = () => {
   };
 
   
-  
-  
-
   useEffect(() => {
     const initWeb3AndContracts = async () => {
       if (window.ethereum) {
