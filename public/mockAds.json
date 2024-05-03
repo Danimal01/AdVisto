@@ -63,7 +63,41 @@
         "category": "home",
         "reward": "0.00015",
         "chain": "base"
+      },
+      {
+        "adId": "7",
+        "imageUrl": "https://wlbl-s3.wlbl.xyz/logo_mintle_desktop_223fc27e00/logo_mintle_desktop_223fc27e00.png",
+        "clickUrl": "https://example.com/ad/7",
+        "description": "Mintle",
+        "videoUrl": "mintle.mp4",
+        "provider": "Mintle",
+        "category": "technology",
+        "reward": "0.0002",
+        "chain": "mantle"
+      },
+      {
+        "adId": "8",
+        "imageUrl": "https://init.capital/_next/static/media/init-logo.0032e171.svg",
+        "clickUrl": "https://example.com/ad/8",
+        "description": "INIT Capital",
+        "videoUrl": "INIT.mp4",
+        "provider": "INIT",
+        "category": "technology",
+        "reward": "0.00015",
+        "chain": "mantle"
+      },
+      {
+        "adId": "9",
+        "imageUrl": "https://ethena.fi/shared/ethena.svg",
+        "clickUrl": "https://example.com/ad/9",
+        "description": "Ethena",
+        "videoUrl": "ethena.mp4",
+        "provider": "Ethena",
+        "category": "technology",
+        "reward": "0.00015",
+        "chain": "mantle"
       }
+
     ]
   }
   

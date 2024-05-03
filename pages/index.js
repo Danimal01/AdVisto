@@ -145,8 +145,66 @@ const IndexPage = () => {
     }
   ];
 
+  const mantleContractABI=[
+    {
+      "inputs": [],
+      "name": "claimReward",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "stateMutability": "payable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "RewardClaimed",
+      "type": "event"
+    },
+    {
+      "stateMutability": "payable",
+      "type": "receive"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "rewardsClaimed",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ];
+
   const ethContractAddress = '0x1E21e0968C721eBDe1cd9387DD8eE7A8c672FE5C'; // Ethereum smart contract address
   const baseContractAddress = '0x035BDa1174e5708cF54dCEA75623C159F41ECC26'; // Base smart contract address
+  const mantleContractAddress = '0x901cBd29D163A4055Ab0E40E03Faf31AB70B0E3C'
 
   const networkParams = {
     mainNet: {
@@ -170,7 +228,19 @@ const IndexPage = () => {
         symbol: 'ETH',
         decimals: 18
       }
+    },
+    mantle: {
+      chainId: '0x138b',  // 5003 in decimal
+      chainName: 'Mantle Sepolia Testnet',
+      rpcUrls: ['https://rpc.sepolia.mantle.xyz'],
+      blockExplorerUrls: ['https://explorer.sepolia.mantle.xyz'],  // Adjust based on actual explorer URL if different
+      nativeCurrency: {
+        name: 'ETH',
+        symbol: 'ETH',  // Use actual symbol if different
+        decimals: 18
+      }
     }
+    
   };
 
   useEffect(() => {
@@ -239,7 +309,11 @@ const IndexPage = () => {
   
     initWeb3AndContracts();
   }, [selectedChain]); // Run only once on component mount
+
+
+
   
+
   
 
 // Adjust the initialization based on selectedChain to use correct Web3 instance
@@ -266,27 +340,38 @@ useEffect(() => {
 
 
 
-    // Function to handle reward claim// Function to handle reward claim
 const claimReward = async () => {
   if (!window.ethereum) {
     console.error('MetaMask is not installed');
     return;
   }
 
-  const web3Instance = new Web3(window.ethereum);
-  const contractInstance = new web3Instance.eth.Contract(
-    selectedChain === 'mainNet' ? ethContractABI : baseContractABI, 
-    selectedChain === 'mainNet' ? ethContractAddress : baseContractAddress
-  );
-
   try {
     await window.ethereum.request({ method: 'eth_requestAccounts' }); // This will prompt user to connect their wallet
+    const web3Instance = new Web3(window.ethereum);
     const accounts = await web3Instance.eth.getAccounts();
 
     if (accounts.length === 0) {
       console.error('No accounts found.');
       return;
     }
+
+    let contractABI, contractAddress;
+    if (selectedChain === 'mainNet') {
+      contractABI = ethContractABI;
+      contractAddress = ethContractAddress;
+    } else if (selectedChain === 'base') {
+      contractABI = baseContractABI;
+      contractAddress = baseContractAddress;
+    } else if (selectedChain === 'mantle') {
+      contractABI = mantleContractABI; // Assuming mantleContractABI is defined elsewhere in your code
+      contractAddress = mantleContractAddress; // Assuming mantleContractAddress is defined elsewhere
+    } else {
+      console.error("Unsupported network");
+      return;
+    }
+
+    const contractInstance = new web3Instance.eth.Contract(contractABI, contractAddress);
 
     await contractInstance.methods.claimReward().send({ from: accounts[0] });
     console.log(`Reward claimed successfully on ${selectedChain}`);
@@ -296,7 +381,7 @@ const claimReward = async () => {
   }
 };
 
-    
+
 
 
     const fetchAds = async (chain) => {
@@ -406,6 +491,13 @@ const fetchRewardHistory = async () => {
 };
 
 
+
+const getTransactionUrl = (hash) => {
+  const baseUrl = networkParams[selectedChain].blockExplorerUrls[0];
+  return `${baseUrl}/tx/${hash}`;
+};
+
+
     // Function to handle form submission
     const handleSubmit = (event) => {
       event.preventDefault();
@@ -429,10 +521,7 @@ const fetchRewardHistory = async () => {
     authenticateUser();
   }, []);
 
-  const getTransactionUrl = (hash, chain) => {
-    const baseUrl = chain === 'mainNet' ? 'https://sepolia.etherscan.io/tx/' : 'https://sepolia.basescan.org/tx/';
-    return baseUrl + hash;
-  };
+
 
   const onSuccess = (result) => {
     // Log the success or perform further actions
@@ -454,6 +543,7 @@ const fetchRewardHistory = async () => {
   <select id="chain-select" value={selectedChain} onChange={handleChainChange}>
     <option value="mainNet">Main Net Sepolia</option>
     <option value="base">Base Sepolia</option>
+    <option value="mantle">Mantle Sepolia TestNet</option>
   </select>
 </div>
 
