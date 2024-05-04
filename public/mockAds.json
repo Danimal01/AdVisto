@@ -96,6 +96,39 @@
         "category": "technology",
         "reward": "0.00015",
         "chain": "mantle"
+      },
+      {
+        "adId": "10",
+        "imageUrl": "https://ethena.fi/shared/ethena.svg",
+        "clickUrl": "https://example.com/ad/9",
+        "description": "Yuliverse- IRL Metaverse Game Live on iOS and Android",
+        "videoUrl": "yuliverse.mp4",
+        "provider": "Yuliverse",
+        "category": "technology",
+        "reward": "0.00015",
+        "chain": "polygon"
+      },
+      {
+        "adId": "11",
+        "imageUrl": "https://ethena.fi/shared/ethena.svg",
+        "clickUrl": "https://example.com/ad/9",
+        "description": "OpenSea dude",
+        "videoUrl": "openSea.mp4",
+        "provider": "Ethena",
+        "category": "technology",
+        "reward": "0.00015",
+        "chain": "polygon"
+      },
+      {
+        "adId": "12",
+        "imageUrl": "https://ethena.fi/shared/ethena.svg",
+        "clickUrl": "https://example.com/ad/9",
+        "description": "1inch baby",
+        "videoUrl": "1Inch.mp4",
+        "provider": "Ethena",
+        "category": "technology",
+        "reward": "0.00015",
+        "chain": "polygon"
       }
 
     ]

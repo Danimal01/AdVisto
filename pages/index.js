@@ -202,9 +202,70 @@ const IndexPage = () => {
     }
   ];
 
+  const polygonCardonaSepoliaAbi=[
+    {
+      "inputs": [],
+      "name": "claimReward",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "stateMutability": "payable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "RewardClaimed",
+      "type": "event"
+    },
+    {
+      "stateMutability": "payable",
+      "type": "receive"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "rewardsClaimed",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ];
+
+  // const 
+
   const ethContractAddress = '0x1E21e0968C721eBDe1cd9387DD8eE7A8c672FE5C'; // Ethereum smart contract address
   const baseContractAddress = '0x035BDa1174e5708cF54dCEA75623C159F41ECC26'; // Base smart contract address
   const mantleContractAddress = '0x901cBd29D163A4055Ab0E40E03Faf31AB70B0E3C'
+  const polygonCardonaSepoliaAddress='0x5CF9e9CDe0aC4e16b285a7CA6E37041440A55A95'
+  
 
   const networkParams = {
     mainNet: {
@@ -237,6 +298,17 @@ const IndexPage = () => {
       nativeCurrency: {
         name: 'ETH',
         symbol: 'ETH',  // Use actual symbol if different
+        decimals: 18
+      }
+    },
+    polygonCardonaSepolia: {
+      chainId: '0x98A',  // Hexadecimal value of 2442
+      chainName: 'Polygon zEVM Cardona Testnet',
+      rpcUrls: ['https://polygon-zkevm-cardona.blockpi.network/v1/rpc/public'],
+      blockExplorerUrls: ['https://cardona-zkvm.polygonscan.com'],
+      nativeCurrency: {
+        name: 'ETH',
+        symbol: 'ETH',
         decimals: 18
       }
     }
@@ -296,6 +368,9 @@ const IndexPage = () => {
       } else if (newChain === 'mantle') {
         contractABI = mantleContractABI;
         contractAddress = mantleContractAddress;
+      } else if (newChain === 'polygonCardonaSepolia') {
+        contractABI = polygonCardonaSepoliaAbi;
+        contractAddress = polygonCardonaSepoliaAddress;
       } else {
         console.error("Unsupported network");
         return;
@@ -392,7 +467,7 @@ const claimReward = async () => {
       return;
     }
 
-    let contractABI, contractAddress;
+    let contractABI, contractAddress, transactionParameters = {};
     if (selectedChain === 'mainNet') {
       contractABI = ethContractABI;
       contractAddress = ethContractAddress;
@@ -400,8 +475,14 @@ const claimReward = async () => {
       contractABI = baseContractABI;
       contractAddress = baseContractAddress;
     } else if (selectedChain === 'mantle') {
-      contractABI = mantleContractABI; // Assuming mantleContractABI is defined elsewhere in your code
-      contractAddress = mantleContractAddress; // Assuming mantleContractAddress is defined elsewhere
+      contractABI = mantleContractABI;
+      contractAddress = mantleContractAddress;
+    } else if (selectedChain === 'polygonCardonaSepolia') {
+      contractABI = polygonCardonaSepoliaAbi;
+      contractAddress = polygonCardonaSepoliaAddress;
+      // Fetch current gas price and set it explicitly for Polygon Cardona Sepolia
+      const gasPrice = await web3Instance.eth.getGasPrice();
+      transactionParameters = { gasPrice: gasPrice }; // Explicitly set gasPrice for networks not supporting EIP-1559
     } else {
       console.error("Unsupported network");
       return;
@@ -409,13 +490,18 @@ const claimReward = async () => {
 
     const contractInstance = new web3Instance.eth.Contract(contractABI, contractAddress);
 
-    await contractInstance.methods.claimReward().send({ from: accounts[0] });
+    await contractInstance.methods.claimReward().send({
+      from: accounts[0],
+      ...transactionParameters // Spread operator to apply conditional parameters
+    });
     console.log(`Reward claimed successfully on ${selectedChain}`);
-    setUserRewards((prevRewards) => prevRewards + 0.0002); // Assuming rewards are in ETH
+    setUserRewards((prevRewards) => prevRewards + 0.0002); // Adjust the reward increment as needed
   } catch (error) {
     console.error(`Error claiming reward on ${selectedChain}:`, error);
   }
 };
+
+
 
 
 
@@ -434,7 +520,8 @@ const claimReward = async () => {
     };
     
     useEffect(() => {
-      fetchAds(selectedChain);
+      const chainKey = selectedChain === 'polygonCardonaSepolia' ? 'polygon' : selectedChain; // Handling the chain key for fetching ads
+      fetchAds(chainKey);
     }, [selectedChain]); // Refetch when selectedChain changes
     
 
@@ -497,6 +584,7 @@ const handleAdClick = async (ad) => {
 
 
 // Function to fetch reward history
+// Function to fetch reward history with adjusted handling for Polygon Cardona Sepolia
 const fetchRewardHistory = async () => {
   if (!web3 || !rewardContract || !walletAddress) {
     console.error('Web3, contract instance, or wallet address not initialized.');
@@ -504,15 +592,39 @@ const fetchRewardHistory = async () => {
   }
 
   try {
-    // Fetch the events related to the RewardClaimed event
-    const events = await rewardContract.getPastEvents('RewardClaimed', {
-      filter: { user: walletAddress },
-      fromBlock: 0,
-      toBlock: 'latest',
-    });
+    if (!['mainNet', 'base', 'mantle', 'polygonCardonaSepolia'].includes(selectedChain)) {
+      console.error("Unsupported network");
+      return;
+    }
 
-    // Extract transaction hashes from events
-    const transactionHashes = events.map(event => event.transactionHash);
+    const currentBlockNumber = await web3.eth.getBlockNumber();
+    const currentBlock = Number(currentBlockNumber); // Ensure the block number is a standard number
+    let transactionHashes = [];
+
+    if (selectedChain === 'polygonCardonaSepolia') {
+      // Special handling for Polygon Cardona Sepolia due to block range limit
+      const maxRange = 1024;  // Maximum block range for a single query
+      let fromBlock = 0;
+
+      while (fromBlock < currentBlock) {
+        let endBlock = Math.min(fromBlock + maxRange, currentBlock);
+        const events = await rewardContract.getPastEvents('RewardClaimed', {
+          filter: { user: walletAddress },
+          fromBlock: fromBlock,
+          toBlock: endBlock,
+        });
+        transactionHashes.push(...events.map(event => event.transactionHash));
+        fromBlock = endBlock + 1;  // Increment to proceed to the next range
+      }
+    } else {
+      // Default handling for other networks
+      const events = await rewardContract.getPastEvents('RewardClaimed', {
+        filter: { user: walletAddress },
+        fromBlock: 0,
+        toBlock: 'latest',
+      });
+      transactionHashes = events.map(event => event.transactionHash);
+    }
 
     // Update the state with the transaction hashes
     setRewardHistory(transactionHashes);
@@ -520,6 +632,9 @@ const fetchRewardHistory = async () => {
     console.error('Error fetching reward history:', error);
   }
 };
+
+
+
 
 
 
@@ -576,6 +691,8 @@ const getTransactionUrl = (hash) => {
     <option value="mainNet">Main Net Sepolia</option>
     <option value="base">Base Sepolia</option>
     <option value="mantle">Mantle Sepolia TestNet</option>
+    <option value="polygonCardonaSepolia">Polygon Cardona Sepolia</option> {/* New option */}
+
   </select>
 </div>
 
