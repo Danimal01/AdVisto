@@ -680,9 +680,16 @@ const getTransactionUrl = (hash) => {
     console.log("Proof received:", proof);
   };
 
+  const clearRewardHistory = () => {
+    setRewardHistory([]);
+  };
+
   return (
     <div className={styles.container}>
-      <h1>Welcome to AdVisto</h1>
+      <h1>AdVisto White Label API Solution</h1>
+    <p>
+      AdVisto redefines digital advertising by empowering users to earn rewards directly through engagement. Our white-label API suite enables businesses to integrate and customize user-centric advertising models. By participating, users not only discover products but also earn cryptocurrency rewards, enhancing engagement and loyalty. AdVisto bridges Web2 and Web3 ecosystems, offering scalable, blockchain-powered solutions that ensure transparency and effectiveness in advertising strategies.
+    </p>
       <p>Your Access Token: {accessToken}</p>
       <h2>Available Ads</h2>
       <div className={styles.dropdown}>
@@ -761,7 +768,15 @@ const getTransactionUrl = (hash) => {
         <button type="submit">Fetch Rewards</button>
       </form>
 
-      <h2>Rewards Points: {parseFloat(userRewards).toFixed(0)}</h2>
+      <h2>
+        Rewards Transactions:
+        {/* Conditionally render the clear button if there are items in the reward history */}
+        {rewardHistory.length > 0 && (
+          <button onClick={clearRewardHistory} style={{marginLeft: "10px"}}>
+            X
+          </button>
+        )}
+      </h2>
       <ul className={styles.rewardHistory}>
       {rewardHistory.length > 0 && rewardHistory.map((historyItem, index) => (
         <li key={index}>
